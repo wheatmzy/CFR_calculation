@@ -38,21 +38,21 @@ scale_cfr <- function(data_1_in, delay_fun){
              cum_known_t = round(cumulative_known_t), total_cases = sum(case_incidence))
 }
 # Get data
-allDat <- NCoVUtils::get_ecdc_cases()
+# allDat <- NCoVUtils::get_ecdc_cases()
+allDat <- read.csv("D:/covid19/nytData/covid-19-data/us-states.csv")
 allDatDesc <- allDat %>% 
-  dplyr::arrange(country, date) %>% 
+  dplyr::arrange(state, date) %>% 
   dplyr::mutate(date = lubridate::ymd(date)) %>% 
   dplyr::rename(new_cases = cases, new_deaths = deaths) %>%
-  dplyr::select(date, country, new_cases, new_deaths) %>%
-  dplyr::filter(country != "CANADA", 
-                country != "Cases_on_an_international_conveyance_Japan")
+  dplyr::select(date, state, new_cases, new_deaths)
+  
 # Do analysis
 allTogetherClean2 <- allDatDesc %>%
-  dplyr::group_by(country) %>%
+  dplyr::group_by(state) %>%
   padr::pad() %>%
   dplyr::mutate(new_cases = tidyr::replace_na(new_cases, 0),
                 new_deaths = tidyr::replace_na(new_deaths, 0)) %>%
-  dplyr::group_by(country) %>%
+  dplyr::group_by(state) %>%
   dplyr::mutate(cum_deaths = sum(new_deaths)) %>%
   dplyr::filter(cum_deaths > 0) %>%
   dplyr::select(-cum_deaths) %>%
@@ -80,7 +80,7 @@ allTogetherClean2 <- allDatDesc %>%
                 #                   "Countries that have reported greater than or equal to 5 deaths"))
 
 reportDataFinal <- allTogetherClean2 %>%
-  dplyr::select(country, total_cases, total_deaths, underreporting_estimate, lower,
+  dplyr::select(state, total_cases, total_deaths, underreporting_estimate, lower,
                 upper, bottom, top) %>%
   #dplyr::mutate(is.numeric, signif, digits=2)  %>%
   dplyr::mutate(underreporting_estimate = ifelse(underreporting_estimate <= 1, underreporting_estimate, 1)) %>%
@@ -91,13 +91,13 @@ reportDataFinal <- allTogetherClean2 %>%
   dplyr::mutate(upper = signif(upper, 2)) %>%
   dplyr::mutate(bottom = signif(bottom, 2)) %>%
   dplyr::mutate(top = signif(top, 2)) %>%
-  dplyr::ungroup(country) %>%
-  dplyr::mutate(country = country %>% stringr::str_replace_all("_", " ")) %>% 
+  dplyr::ungroup(state) %>%
+  dplyr::mutate(state = state %>% stringr::str_replace_all("_", " ")) %>% 
   dplyr::mutate(underreporting_estimate_clean = paste0(underreporting_estimate*100,
                                                 "% (",lower*100,"% - ",upper*100,"%)"))
 
 
-saveRDS(reportDataFinal, "data/all_together_clean1.rds")
+saveRDS(reportDataFinal, "data/all_together_clean2.rds")
 
 # all code below are wheat's testing
-dat = readRDS("data/all_together_clean.rds")
+# dat = readRDS("data/all_together_clean.rds")
