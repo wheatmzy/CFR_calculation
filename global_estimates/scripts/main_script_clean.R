@@ -1,3 +1,5 @@
+library(dplyr)
+setwd("D:/covid19/CMMID/CFR_calculation/global_estimates")
 zmeanHDT <- 13
 zsdHDT <- 12.7
 zmedianHDT <- 9.1
@@ -5,7 +7,7 @@ muHDT <- log(zmedianHDT)
 sigmaHDT <- sqrt(2*(log(zmeanHDT) - muHDT))
 cCFRBaseline <- 1.38
 cCFREstimateRange <- c(1.23, 1.53)
-#cCFRIQRRange <- c(1.3, 1.4)
+cCFRIQRRange <- c(1.3, 1.4)
 
 
 
@@ -56,6 +58,7 @@ allTogetherClean2 <- allDatDesc %>%
   dplyr::select(-cum_deaths) %>%
   dplyr::do(scale_cfr(., delay_fun = hospitalisation_to_death_truncated)) %>%
   dplyr::filter(cum_known_t > 0) %>%
+  dplyr::filter(total_deaths<cum_known_t) %>%
   dplyr::mutate(nCFR_UQ = binom.test(total_deaths, total_cases)$conf.int[2],
                 nCFR_LQ = binom.test(total_deaths, total_cases)$conf.int[1],
                 cCFR_UQ = binom.test(total_deaths, cum_known_t)$conf.int[2],
@@ -93,4 +96,8 @@ reportDataFinal <- allTogetherClean2 %>%
   dplyr::mutate(underreporting_estimate_clean = paste0(underreporting_estimate*100,
                                                 "% (",lower*100,"% - ",upper*100,"%)"))
 
-saveRDS(reportDataFinal, "data/all_together_clean.rds")
+
+saveRDS(reportDataFinal, "data/all_together_clean1.rds")
+
+# all code below are wheat's testing
+dat = readRDS("data/all_together_clean.rds")
